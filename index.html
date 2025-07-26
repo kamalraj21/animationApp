@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trippy Processing Animation</title>
+    <style>
+      /* Ensure the canvas takes up the full window and no scrollbars appear */
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #000;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Include the p5.js library from a CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+    <!-- The sketch itself is defined below. We support multiple animation
+         modes inspired by 1970s psychedelic visuals. Users can interact
+         through mouse movement or touch, click/tap to switch between
+         animations, and save or share images. -->
+    <script>
+      /*
+       * Global variables
+       */
+      let t = 0;           // time variable for animation
+      let mode = 0;        // which animation mode to display
+      const numModes = 12;  // total number of animation modes (0‑11)
+
+      function setup() {
+        createCanvas(windowWidth, windowHeight);
+        colorMode(HSB, 255);
+        noFill();
+        strokeWeight(2);
+        background(0);
+        // Setup save/share buttons after the canvas is created
+        setupControls();
+      }
+
+      function draw() {
+        // Clear the background lightly to create trails
+        background(0, 10);
+        // Dispatch to the correct drawing routine
+        switch (mode) {
+          case 0:
+            drawSwirlingLoops();
+            break;
+          case 1:
+            drawSpiralCircles();
+            break;
+          case 2:
+            drawRadiatingWaves();
+            break;
+          case 3:
+            drawKaleidoscope();
+            break;
+          case 4:
+            drawPsychedelicStar();
+            break;
+          case 5:
+            drawWarpGrid();
+            break;
+          case 6:
+            drawHearts();
+            break;
+          case 7:
+            drawFireworks();
+            break;
+          case 8:
+            drawMandala();
+            break;
+          case 9:
+            drawPeaceSymbol();
+            break;
+          case 10:
+            drawYinYang();
+            break;
+          case 11:
+            drawFractalFern();
+            break;
+        }
+        t += 0.01;
+      }
+
+      function drawSwirlingLoops() {
+        // Centre the coordinate system
+        push();
+        translate(width / 2, height / 2);
+        const numShapes = 120;
+        for (let i = 0; i < numShapes; i++) {
+          const angle = (TWO_PI * i) / numShapes;
+          // Let the radius depend on mouse distance to centre
+          const mouseDist = dist(mouseX, mouseY, width / 2, height / 2);
+          const baseRadius = map(
+            sin(t + i * 0.2),
+            -1,
+            1,
+            100,
+            min(width, height) / 2
+          );
+          const radius = lerp(baseRadius, mouseDist, 0.2);
+          const x = radius * cos(angle * 2 + t * 0.5);
+          const y = radius * sin(angle * 2 + t * 0.5);
+          const hue = (i * 3 + t * 50) % 255;
+          stroke(hue, 200, 255, 200);
+          const size = 20 + 10 * sin(t + i * 0.3);
+          ellipse(x, y, size, size);
+        }
+        pop();
+      }
+
+      function drawSpiralCircles() {
+        // Draw a spiral of circles around the pointer
+        const num = 200;
+        for (let i = 0; i < num; i++) {
+          const angle = i * 0.1 + t * 0.5;
+          const radius = i * 2;
+          const x = mouseX + cos(angle) * radius;
+          const y = mouseY + sin(angle) * radius;
+          const hue = (i * 2 + t * 30) % 255;
+          const alpha = 200;
+          stroke(hue, 200, 255, alpha);
+          const size = 8 + 4 * sin(t * 2 + i);
+          ellipse(x, y, size, size);
+        }
+      }
+
+      function drawRadiatingWaves() {
+        // Draw concentric waves emanating from the pointer
+        const rings = 25;
+        for (let i = 1; i <= rings; i++) {
+          const baseRadius = i * 30;
+          const oscillation = 15 * sin(t * 3 + i);
+          const radius = baseRadius + oscillation;
+          const hue = (i * 10 + t * 40) % 255;
+          stroke(hue, 200, 255, 220);
+          ellipse(mouseX, mouseY, radius * 2, radius * 2);
+        }
+      }
+
+      function drawKaleidoscope() {
+        // Draw a kaleidoscope pattern around the centre with 8 wedges
+        const slices = 8;
+        push();
+        translate(width / 2, height / 2);
+        for (let i = 0; i < slices; i++) {
+          push();
+          rotate((TWO_PI * i) / slices);
+          kaleidoscopeWedge();
+          pop();
+        }
+        pop();
+      }
+
+      function kaleidoscopeWedge() {
+        // Draw a wedge: a shape that rotates and scales over time
+        const points = 6;
+        const radius = 200 + 50 * sin(t * 2);
+        const angleOffset = t + mouseX * 0.005;
+        beginShape();
+        for (let j = 0; j < points; j++) {
+          const angle = (PI / points) * j;
+          const r = radius * (0.5 + 0.5 * sin(t * 3 + j));
+          const x = cos(angle + angleOffset) * r;
+          const y = sin(angle + angleOffset) * r;
+          const hue = ((j * 40 + t * 60) % 255);
+          stroke(hue, 200, 255, 220);
+          vertex(x, y);
+        }
+        endShape(CLOSE);
+      }
+
+      function drawPsychedelicStar() {
+        // Draw a rotating, pulsating star at the centre
+        push();
+        translate(width / 2, height / 2);
+        rotate(t * 2 + mouseX * 0.005);
+        const arms = 7;
+        const inner = 80;
+        const outer = 200 + 50 * sin(t * 3);
+        beginShape();
+        for (let i = 0; i < arms * 2; i++) {
+          const r = i % 2 === 0 ? outer : inner;
+          const angle = (PI * i) / arms;
+          const x = r * cos(angle);
+          const y = r * sin(angle);
+          const hue = ((i * 20 + t * 80) % 255);
+          stroke(hue, 200, 255, 220);
+          vertex(x, y);
+        }
+        endShape(CLOSE);
+        pop();
+      }
+
+      function drawWarpGrid() {
+        // Draw a warped grid that bends around the pointer
+        const cols = 20;
+        const rows = 20;
+        for (let i = 0; i <= cols; i++) {
+          for (let j = 0; j <= rows; j++) {
+            const u = i / cols;
+            const v = j / rows;
+            // Map to screen space
+            const x0 = u * width;
+            const y0 = v * height;
+            // Apply a distortion based on distance to pointer
+            const dx = x0 - mouseX;
+            const dy = y0 - mouseY;
+            const distToPointer = sqrt(dx * dx + dy * dy);
+            const distort = 50 * sin(distToPointer * 0.05 - t * 3);
+            const x = x0 + (dx / distToPointer) * distort;
+            const y = y0 + (dy / distToPointer) * distort;
+            const hue = ((i * 10 + j * 10 + t * 100) % 255);
+            stroke(hue, 200, 255, 180);
+            point(x, y);
+          }
+        }
+      }
+
+      // Heart swirling animation (mode 6)
+      function drawHearts() {
+        push();
+        translate(width / 2, height / 2);
+        const count = 80;
+        for (let i = 0; i < count; i++) {
+          const angle = (TWO_PI * i) / count + t * 2;
+          const r = 200 + 50 * sin(t * 3 + i);
+          const x = r * cos(angle) + (mouseX - width / 2) * 0.3;
+          const y = r * sin(angle) + (mouseY - height / 2) * 0.3;
+          const hue = (i * 5 + t * 100) % 255;
+          const size = 20 + 10 * sin(t + i);
+          drawHeart(x, y, size, hue);
+        }
+        pop();
+      }
+
+      // Helper to draw a single heart shape using bezier curves
+      function drawHeart(x, y, size, hue) {
+        push();
+        translate(x, y);
+        const scaleFactor = size / 50;
+        scale(scaleFactor);
+        stroke(hue, 200, 255, 200);
+        beginShape();
+        // Top point
+        vertex(0, -30);
+        // Right lobe
+        bezierVertex(20, -50, 50, -20, 0, 30);
+        // Left lobe
+        bezierVertex(-50, -20, -20, -50, 0, -30);
+        endShape(CLOSE);
+        pop();
+      }
+
+      // Fireworks/particle swirl animation (mode 7)
+      function drawFireworks() {
+        const particles = 150;
+        for (let i = 0; i < particles; i++) {
+          // Use Perlin noise to compute pseudo-random positions
+          const nx = noise(i * 0.1, t * 0.5);
+          const ny = noise(i * 0.1 + 100, t * 0.5 + 100);
+          const x = nx * width;
+          const y = ny * height;
+          const size = 6 + 6 * noise(i * 0.2, t * 0.3);
+          const hue = (i * 8 + t * 200) % 255;
+          stroke(hue, 200, 255, 180);
+          ellipse(x, y, size, size);
+        }
+      }
+
+      // Mandala animation (mode 8)
+      function drawMandala() {
+        push();
+        translate(width / 2, height / 2);
+        const rings = 6;
+        for (let i = 1; i <= rings; i++) {
+          const radius = i * 80 + 40 * sin(t * 2 + i);
+          const segments = 12;
+          for (let j = 0; j < segments; j++) {
+            const angle = (TWO_PI * j) / segments + t * 0.5;
+            const x = radius * cos(angle);
+            const y = radius * sin(angle);
+            const hue = (i * 50 + j * 10 + t * 60) % 255;
+            stroke(hue, 200, 255, 200);
+            ellipse(x, y, 18, 18);
+          }
+          // Draw ring outline
+          const hueRing = (i * 50 + t * 80) % 255;
+          stroke(hueRing, 150, 255, 100);
+          noFill();
+          ellipse(0, 0, radius * 2, radius * 2);
+        }
+        pop();
+      }
+
+      // Peace symbol animation (mode 9)
+      function drawPeaceSymbol() {
+        push();
+        translate(width / 2, height / 2);
+        rotate(t * 0.5);
+        const radius = min(width, height) / 4 + 50 * sin(t * 3);
+        const hue = (t * 100) % 255;
+        stroke(hue, 200, 255, 200);
+        strokeWeight(6);
+        noFill();
+        // Outer circle
+        ellipse(0, 0, radius * 2, radius * 2);
+        // Vertical line
+        line(0, 0, 0, radius);
+        // Diagonal lines at 45 degrees
+        const diagAngle = PI / 4;
+        line(0, 0, radius * cos(diagAngle), radius * sin(diagAngle));
+        line(0, 0, -radius * cos(diagAngle), radius * sin(diagAngle));
+        pop();
+      }
+
+      // Yin‑Yang animation (mode 10)
+      function drawYinYang() {
+        push();
+        translate(width / 2, height / 2);
+        rotate(t);
+        const R = min(width, height) / 4 + 40 * sin(t * 2);
+        noStroke();
+        // Draw two halves
+        fill((t * 50) % 255, 200, 255);
+        arc(0, 0, R * 2, R * 2, -HALF_PI, HALF_PI, PIE);
+        fill((t * 50 + 128) % 255, 200, 255);
+        arc(0, 0, R * 2, R * 2, HALF_PI, 3 * HALF_PI, PIE);
+        // Small circles
+        const r = R / 2;
+        fill((t * 50) % 255, 200, 255);
+        ellipse(0, -r, R / 2, R / 2);
+        fill((t * 50 + 128) % 255, 200, 255);
+        ellipse(0, r, R / 2, R / 2);
+        // Dots
+        fill((t * 50 + 128) % 255, 200, 255);
+        ellipse(0, -r, R / 8, R / 8);
+        fill((t * 50) % 255, 200, 255);
+        ellipse(0, r, R / 8, R / 8);
+        pop();
+      }
+
+      // Fractal fern / flora animation (mode 11)
+      function drawFractalFern() {
+        push();
+        translate(width / 2, height);
+        // Start with a single branch pointing up
+        let branches = [ { x: 0, y: 0, angle: -HALF_PI, length: height / 5 } ];
+        const iterations = 4;
+        for (let i = 0; i < iterations; i++) {
+          const newBranches = [];
+          for (const br of branches) {
+            const { x, y, angle, length } = br;
+            const xEnd = x + length * cos(angle);
+            const yEnd = y + length * sin(angle);
+            const hue = (i * 40 + t * 80) % 255;
+            stroke(hue, 200, 255, 220);
+            line(x, y, xEnd, yEnd);
+            const newLen = length * 0.7;
+            // Create two new branches with slight oscillation based on time
+            newBranches.push({ x: xEnd, y: yEnd, angle: angle - 0.4 + 0.1 * sin(t + i), length: newLen });
+            newBranches.push({ x: xEnd, y: yEnd, angle: angle + 0.4 + 0.1 * cos(t + i), length: newLen });
+          }
+          branches = newBranches;
+        }
+        pop();
+      }
+
+      // Switch modes when the user clicks or taps anywhere on the canvas
+      function mousePressed() {
+        mode = (mode + 1) % numModes;
+      }
+      function touchStarted() {
+        // Prevent the default behaviour to avoid scrolling on mobile
+        mousePressed();
+        return false;
+      }
+
+      // Add save and share controls overlay
+      function setupControls() {
+        // Create a container for our controls
+        const controlBar = document.createElement('div');
+        controlBar.style.position = 'fixed';
+        controlBar.style.top = '10px';
+        controlBar.style.left = '50%';
+        controlBar.style.transform = 'translateX(-50%)';
+        controlBar.style.display = 'flex';
+        controlBar.style.gap = '12px';
+        controlBar.style.background = 'rgba(0, 0, 0, 0.5)';
+        controlBar.style.padding = '6px 12px';
+        controlBar.style.borderRadius = '6px';
+        controlBar.style.zIndex = 10;
+        document.body.appendChild(controlBar);
+
+        // Save Image button
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Save Image';
+        styleControlButton(saveBtn);
+        saveBtn.onclick = () => {
+          saveCanvas('psychedelic_snapshot', 'png');
+        };
+        controlBar.appendChild(saveBtn);
+
+        // Record/Stop button for video capture
+        const recordBtn = document.createElement('button');
+        recordBtn.textContent = 'Record Video';
+        styleControlButton(recordBtn);
+        let recording = false;
+        let mediaRecorder;
+        let recordedChunks = [];
+        recordBtn.onclick = async () => {
+          const canvasEl = document.querySelector('canvas');
+          if (!recording) {
+            // Start recording
+            const stream = canvasEl.captureStream(30); // capture at 30 fps
+            recordedChunks = [];
+            let mimeType = 'video/mp4';
+            if (!MediaRecorder.isTypeSupported(mimeType)) {
+              mimeType = 'video/webm';
+            }
+            try {
+              mediaRecorder = new MediaRecorder(stream, { mimeType });
+            } catch (e) {
+              alert('Video recording is not supported in this browser.');
+              return;
+            }
+            mediaRecorder.ondataavailable = (e) => {
+              if (e.data.size > 0) recordedChunks.push(e.data);
+            };
+            mediaRecorder.onstop = async () => {
+              const blob = new Blob(recordedChunks, { type: mimeType });
+              // Attempt to use File System Access API for custom folder
+              if (window.showDirectoryPicker) {
+                try {
+                  const dirHandle = await window.showDirectoryPicker();
+                  const fileName = 'psychedelic_animation' + (mimeType === 'video/mp4' ? '.mp4' : '.webm');
+                  const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+                  const writable = await fileHandle.createWritable();
+                  await writable.write(blob);
+                  await writable.close();
+                  alert('Video saved to selected folder.');
+                  return;
+                } catch (err) {
+                  // User cancelled or error – fallback to download
+                }
+              }
+              // Fallback: create download link
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'psychedelic_animation' + (mimeType === 'video/mp4' ? '.mp4' : '.webm');
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            };
+            mediaRecorder.start();
+            recording = true;
+            recordBtn.textContent = 'Stop Recording';
+          } else {
+            // Stop recording
+            mediaRecorder.stop();
+            recording = false;
+            recordBtn.textContent = 'Record Video';
+          }
+        };
+        controlBar.appendChild(recordBtn);
+
+        // Share button
+        const shareBtn = document.createElement('button');
+        shareBtn.textContent = 'Share';
+        styleControlButton(shareBtn);
+        shareBtn.onclick = async () => {
+          const canvasEl = document.querySelector('canvas');
+          if (navigator.share && canvasEl.toBlob) {
+            canvasEl.toBlob(async (blob) => {
+              const file = new File([blob], 'psychedelic.png', { type: 'image/png' });
+              try {
+                await navigator.share({ files: [file], title: 'Psychedelic Art', text: 'Check out this trippy animation!' });
+              } catch (err) {
+                alert('Sharing failed or was cancelled.');
+              }
+            });
+          } else {
+            alert('Sharing is not supported on this device. Please use the Save Image button and share manually on Instagram.');
+          }
+        };
+        controlBar.appendChild(shareBtn);
+
+        // Instruction overlay at the bottom
+        const info = document.createElement('div');
+        info.innerHTML =
+          '<p style="margin:0;">Tap/click anywhere to switch animations. Move or drag your finger/mouse to interact.</p>' +
+          '<p style="margin:0;">Save Image downloads a PNG of the current frame. Record Video will attempt to save an MP4 (or WebM if MP4 isn\'t supported) and will prompt you to choose a folder on supported browsers. Share uses your device\'s native share sheet if available.</p>';
+        info.style.position = 'fixed';
+        info.style.bottom = '10px';
+        info.style.left = '50%';
+        info.style.transform = 'translateX(-50%)';
+        info.style.color = '#fff';
+        info.style.fontSize = '14px';
+        info.style.background = 'rgba(0, 0, 0, 0.5)';
+        info.style.padding = '8px 12px';
+        info.style.borderRadius = '6px';
+        info.style.zIndex = 10;
+        document.body.appendChild(info);
+      }
+
+      // Helper to style control buttons consistently
+      function styleControlButton(btn) {
+        btn.style.padding = '6px 10px';
+        btn.style.background = 'rgba(255, 255, 255, 0.1)';
+        btn.style.color = '#fff';
+        btn.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+        btn.style.borderRadius = '4px';
+        btn.style.fontSize = '14px';
+        btn.style.cursor = 'pointer';
+        btn.onmouseover = () => (btn.style.background = 'rgba(255, 255, 255, 0.2)');
+        btn.onmouseout = () => (btn.style.background = 'rgba(255, 255, 255, 0.1)');
+      }
+
+      function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+      }
+    </script>
+  </body>
+</html>
