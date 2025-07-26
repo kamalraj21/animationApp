@@ -29,7 +29,8 @@
        */
       let t = 0;           // time variable for animation
       let mode = 0;        // which animation mode to display
-      const numModes = 12;  // total number of animation modes (0‑11)
+      // Increase the number of modes to include new, exotic animations.
+      const numModes = 16;  // total number of animation modes (0‑15)
 
       function setup() {
         createCanvas(windowWidth, windowHeight);
@@ -81,6 +82,18 @@
             break;
           case 11:
             drawFractalFern();
+            break;
+          case 12:
+            drawLissajous();
+            break;
+          case 13:
+            drawFractalTree();
+            break;
+          case 14:
+            drawFlowerOfLife();
+            break;
+          case 15:
+            drawHypnoticSpirals();
             break;
         }
         t += 0.01;
@@ -370,6 +383,94 @@
         pop();
       }
 
+      // New animation (mode 12): Lissajous curves that twist over time.
+      function drawLissajous() {
+        push();
+        translate(width / 2, height / 2);
+        // Parameters for Lissajous pattern – these values determine the number of lobes.
+        const a = 3;
+        const b = 2;
+        const delta = t;
+        noFill();
+        beginShape();
+        for (let angle = 0; angle < TWO_PI; angle += 0.01) {
+          const x = 250 * sin(a * angle + delta);
+          const y = 250 * sin(b * angle);
+          const hue = (angle * 180 / PI + t * 50) % 255;
+          stroke(hue, 200, 255, 220);
+          vertex(x, y);
+        }
+        endShape(CLOSE);
+        pop();
+      }
+
+      // New animation (mode 13): Fractal tree swaying with time.
+      function drawFractalTree() {
+        push();
+        translate(width / 2, height - 10);
+        // Kick off recursion with initial branch length based on screen height
+        const initialLen = height / 4;
+        branch(initialLen);
+        pop();
+      }
+      function branch(len) {
+        if (len < 5) return;
+        // Colour varies with length and time
+        stroke((len * 10 + t * 100) % 255, 200, 255, 220);
+        line(0, 0, 0, -len);
+        // Move to the end of the branch
+        push();
+        translate(0, -len);
+        // Left branch – oscillate angle with time to create motion
+        push();
+        rotate(PI / 6 + 0.3 * sin(t * 2));
+        branch(len * 0.67);
+        pop();
+        // Right branch
+        push();
+        rotate(-PI / 4 + 0.3 * cos(t * 2));
+        branch(len * 0.67);
+        pop();
+        pop();
+      }
+
+      // New animation (mode 14): Flower of Life pattern with floating circles.
+      function drawFlowerOfLife() {
+        push();
+        translate(width / 2, height / 2);
+        const spacing = 50;
+        // Slight movement based on time and input
+        const offsetX = 20 * sin(t * 2 + mouseX * 0.01);
+        const offsetY = 20 * cos(t * 2 + mouseY * 0.01);
+        for (let x = -300; x <= 300; x += spacing) {
+          for (let y = -300; y <= 300; y += spacing) {
+            const hue = ((x + y) * 0.5 + t * 80) % 255;
+            stroke(hue, 200, 255, 200);
+            noFill();
+            ellipse(x + offsetX, y + offsetY, spacing * 1.5, spacing * 1.5);
+          }
+        }
+        pop();
+      }
+
+      // New animation (mode 15): Hypnotic spirals expanding outward.
+      function drawHypnoticSpirals() {
+        push();
+        translate(width / 2, height / 2);
+        noFill();
+        const total = 180;
+        for (let i = 0; i < total; i++) {
+          const angle = i * 0.15 + t * 3;
+          const radius = i * 2;
+          const x = radius * cos(angle);
+          const y = radius * sin(angle);
+          const hue = (i * 4 + t * 100) % 255;
+          stroke(hue, 200, 255, 200);
+          ellipse(x, y, 20 + 10 * sin(t + i * 0.3), 20 + 10 * sin(t + i * 0.3));
+        }
+        pop();
+      }
+
       // Switch modes when the user clicks or taps anywhere on the canvas
       function mousePressed() {
         mode = (mode + 1) % numModes;
@@ -401,7 +502,23 @@
         saveBtn.textContent = 'Save Image';
         styleControlButton(saveBtn);
         saveBtn.onclick = () => {
-          saveCanvas('psychedelic_snapshot', 'png');
+          const canvasEl = document.querySelector('canvas');
+          // Try using canvas.toBlob for better compatibility
+          if (canvasEl.toBlob) {
+            canvasEl.toBlob((blob) => {
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'psychedelic_snapshot.png';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            }, 'image/png');
+          } else {
+            // Fallback to p5.js saveCanvas if toBlob is unavailable
+            saveCanvas('psychedelic_snapshot', 'png');
+          }
         };
         controlBar.appendChild(saveBtn);
 
@@ -494,8 +611,8 @@
         // Instruction overlay at the bottom
         const info = document.createElement('div');
         info.innerHTML =
-          '<p style="margin:0;">Tap/click anywhere to switch animations. Move or drag your finger/mouse to interact.</p>' +
-          '<p style="margin:0;">Save Image downloads a PNG of the current frame. Record Video will attempt to save an MP4 (or WebM if MP4 isn\'t supported) and will prompt you to choose a folder on supported browsers. Share uses your device\'s native share sheet if available.</p>';
+          '<p style="margin:0;">Tap/click anywhere to cycle through 16 animations. Move or drag your finger/mouse to interact; many modes respond to touches and tilts.</p>' +
+          '<p style="margin:0;">Save Image downloads a PNG using a cross‑browser method. Record Video attempts to use MediaRecorder (falls back to WebM if MP4 isn\'t supported) and will prompt you to choose a folder on supported browsers. Share uses your device\'s native share sheet if available.</p>';
         info.style.position = 'fixed';
         info.style.bottom = '10px';
         info.style.left = '50%';
